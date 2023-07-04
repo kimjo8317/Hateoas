@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<script src="https://code.jquery.com/jquery-3.4.1.js"></script>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<!--
+타임리프 템플린 엔진 쓰긴 했지만 타임리프 기능은 딱히 사용 안했음
+jsp랑 비슷함 자바 객체 쓸 수 있음
+-->
+<th:block>
+
+    <div>
+        <label><b>채팅방</b></label>
+        <div id="msgArea"></div>
+        <div>
+            <input type="text" id="msg">
+            <div>
+                <button type="button" id="send">전송</button>
+            </div>
+        </div>
+    </div>
+
+</th:block>
+
+
+<script th:inline="javascript">
+        $(document).ready(function(){
+
+            let input = prompt("닉네임을 입력하세요.");
+            const username = input;
+
+
+            // 채팅창에 들어왔을 때
+            function onOpen() {
+                let str = username + ": 님이 입장하셨습니다.";
+                websocket.send(str);
+            }
+
+            // 서버로부터 받은 메세지 사용자이름:내용 형태
+            function onMessage(msg) {
+                let data = msg.data;
+                // console.log(data)
+
+                let arr = data.split(":");
+                let sessionId = arr[0];
+                let message = arr[1];
+
+                //현재 세션에 로그인 한 사람
+                let cur_session = username;
+
+                //본인 채팅만 구분
+                if(sessionId === cur_session){
+                    let str = "<div style='color: red'>";
+                    str += "<b>" + sessionId + " : " + message + "</b>";
+                    str += "</div>";
+                    $("#msgArea").append(str);
+                }
+                else{
+                    let str = "<div>";
+                    str += "<b>" + sessionId + " : " + message + "</b>";
+                    str += "</div>";
+                    $("#msgArea").append(str);
+                }
+            }
+
+            function send(){
+
+                let msg = document.getElementById("msg");
+
+                console.log(username + ":" + msg.value);
+                // 전송버튼 누르면 인풋박스 값 가져와서 사용자 이름 : 메세지 형태로 웹소켓 서버로 전송
+                websocket.send(username + ":" + msg.value);
+                msg.value = '';
+            }
+
+            $("#send").on("click", (e) => {
+                send();
+            });
+
+            const websocket = new WebSocket("ws://localhost:8080/ws/chat");
+<!--            const websocket = new WebSocket("ws://192.168.0.67:8080/ws/chat");-->
+
+            websocket.onmessage = onMessage;
+            websocket.onopen = onOpen;
+        })
+    </script>
+</html>

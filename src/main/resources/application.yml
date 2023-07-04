@@ -1,0 +1,7 @@
+server:
+  port: 8080
+
+spring:
+  thymeleaf:
+    prefix: classpath:templates/ #뷰를 찾을때 야믈에서 설정값을 읽어옴
+    suffix: .html
